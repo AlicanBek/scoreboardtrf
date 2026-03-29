@@ -21,7 +21,7 @@ let marqueeRepeatsLeft = 0;  // how many passes remain
 let marqueeActive = false;
 let marqueeTextWidth = 0;    // total width in dot columns
 let lastMarqueeTime = 0;
-const MARQUEE_SPEED = 60;    // dots per second
+const MARQUEE_SPEED = 30;    // dots per second
 
 // ── Canvas Setup ──
 
