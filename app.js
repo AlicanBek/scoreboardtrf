@@ -141,6 +141,32 @@ function drawPossessionDot(col, row, active) {
   }
 }
 
+// Draw a character scaled up (each LED dot becomes scale x scale dots)
+function drawCharScaled(char, startCol, startRow, scale, color, brightColor, dimColor) {
+  const glyph = LED_FONT[char.toUpperCase()] || LED_FONT[' '];
+  for (let row = 0; row < CHAR_H; row++) {
+    for (let col = 0; col < CHAR_W; col++) {
+      const on = (glyph[row] >> (CHAR_W - 1 - col)) & 1;
+      for (let sy = 0; sy < scale; sy++) {
+        for (let sx = 0; sx < scale; sx++) {
+          drawDot(startCol + col * scale + sx, startRow + row * scale + sy, on, color, brightColor, dimColor);
+        }
+      }
+    }
+  }
+}
+
+function drawStringScaledCenter(str, centerCol, startRow, scale, color, brightColor, dimColor) {
+  const charW = CHAR_W * scale;
+  const gap = CHAR_GAP * scale;
+  const totalW = str.length * (charW + gap) - gap;
+  let col = Math.round(centerCol - totalW / 2);
+  for (let i = 0; i < str.length; i++) {
+    drawCharScaled(str[i], col, startRow, scale, color, brightColor, dimColor);
+    col += charW + gap;
+  }
+}
+
 function drawTimeoutDots(centerCol, row, remaining) {
   const gap = 4;
   const startCol = centerCol - gap;
@@ -199,16 +225,14 @@ function render() {
   }
 
   // HOME (left: centered at col 20)
-  drawStringCenter('HOME', 20, 2, '#cc1111', '#ee3333', '#120303');
-  drawStringCenter(homeName.substring(0, 6), 20, 11, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
-  drawStringCenter(formatScore(homeScore), 20, 21, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
-  drawPossessionDot(20, 31, possession === 'home');
+  drawStringCenter(homeName.substring(0, 6), 20, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
+  drawStringScaledCenter(formatScore(homeScore), 20, 12, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
+  drawPossessionDot(20, 28, possession === 'home');
 
   // AWAY (right: centered at col 100)
-  drawStringCenter('AWAY', 100, 2, '#cc1111', '#ee3333', '#120303');
-  drawStringCenter(awayName.substring(0, 6), 100, 11, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
-  drawStringCenter(formatScore(awayScore), 100, 21, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
-  drawPossessionDot(100, 31, possession === 'away');
+  drawStringCenter(awayName.substring(0, 6), 100, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
+  drawStringScaledCenter(formatScore(awayScore), 100, 12, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
+  drawPossessionDot(100, 28, possession === 'away');
 
   // CENTER — QTR + Clock + Play Clock (all fit within cols 41-79)
   drawStringCenter('QTR', 53, 2, '#cc1111', '#ee3333', '#120303');
