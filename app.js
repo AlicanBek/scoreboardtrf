@@ -11,6 +11,8 @@ let currentDown = '1ST & 10';
 let possession = null;
 let homeName = 'HOME';
 let awayName = 'AWAY';
+let homeTimeouts = 3;
+let awayTimeouts = 3;
 
 // ── Canvas Setup ──
 
@@ -32,7 +34,7 @@ const COLOR_AMBER_DIM = '#1a1005';
 
 // Board layout in dot units
 const BOARD_COLS = 120;
-const BOARD_ROWS = 40;
+const BOARD_ROWS = 46;
 
 // Computed pixel values
 let dotRadius, dotSpacing;
@@ -129,6 +131,14 @@ function drawPossessionDot(col, row, active) {
   }
 }
 
+function drawTimeoutDots(centerCol, row, remaining) {
+  const gap = 4;
+  const startCol = centerCol - gap;
+  for (let i = 0; i < 3; i++) {
+    drawPossessionDot(startCol + i * gap, row, i < remaining);
+  }
+}
+
 // ── Render ──
 
 function formatScore(n) {
@@ -145,33 +155,43 @@ function render() {
   ctx.fillStyle = COLOR_BG;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Divider columns
-  for (let r = 1; r < BOARD_ROWS - 1; r++) {
+  // Vertical dividers (top section only)
+  for (let r = 1; r < 34; r++) {
     drawDot(40, r, false, null, null, '#150404');
     drawDot(80, r, false, null, null, '#150404');
+  }
+
+  // Horizontal divider separating top and bottom strip
+  for (let c = 1; c < BOARD_COLS - 1; c++) {
+    drawDot(c, 35, false, null, null, '#150404');
   }
 
   // HOME (left: centered at col 20)
   drawStringCenter('HOME', 20, 2, '#cc1111', '#ee3333', '#120303');
   drawStringCenter(homeName.substring(0, 6), 20, 11, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
   drawStringCenter(formatScore(homeScore), 20, 21, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
-  drawPossessionDot(20, 32, possession === 'home');
+  drawPossessionDot(20, 31, possession === 'home');
 
   // AWAY (right: centered at col 100)
   drawStringCenter('AWAY', 100, 2, '#cc1111', '#ee3333', '#120303');
   drawStringCenter(awayName.substring(0, 6), 100, 11, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
   drawStringCenter(formatScore(awayScore), 100, 21, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
-  drawPossessionDot(100, 32, possession === 'away');
+  drawPossessionDot(100, 31, possession === 'away');
 
-  // CENTER
-  drawStringCenter('QTR', 60, 2, '#cc1111', '#ee3333', '#120303');
-  drawStringCenter(currentQuarter.toString(), 60, 10, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
-  drawStringCenter(formatClock(gameClockSeconds), 60, 19, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
-  drawStringCenter(currentDown, 60, 28, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
+  // CENTER — QTR + Clock + Play Clock (all fit within cols 41-79)
+  drawStringCenter('QTR', 53, 2, '#cc1111', '#ee3333', '#120303');
+  drawStringCenter(currentQuarter.toString(), 53, 11, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
+  drawStringCenter(formatClock(gameClockSeconds), 60, 21, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
+  drawStringCenter('PC', 67, 2, '#cc1111', '#ee3333', '#120303');
+  drawStringCenter(playClockSeconds.toString().padStart(2, '0'), 67, 11, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
 
-  // Play clock (top-right of center section)
-  drawString('PC', 73, 2, '#cc1111', '#ee3333', '#120303');
-  drawString(playClockSeconds.toString().padStart(2, '0'), 73, 10, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
+  // BOTTOM STRIP
+  // Timeouts left
+  drawTimeoutDots(20, 38, homeTimeouts);
+  // Down & Distance center
+  drawStringCenter(currentDown, 60, 37, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
+  // Timeouts right
+  drawTimeoutDots(100, 38, awayTimeouts);
 
   requestAnimationFrame(render);
 }
@@ -274,6 +294,16 @@ function setPossession(team) {
   possession = team;
 }
 
+function useTimeout(team) {
+  if (team === 'home' && homeTimeouts > 0) homeTimeouts--;
+  else if (team === 'away' && awayTimeouts > 0) awayTimeouts--;
+}
+
+function resetTimeouts() {
+  homeTimeouts = 3;
+  awayTimeouts = 3;
+}
+
 function resetGame() {
   homeScore = 0;
   awayScore = 0;
@@ -288,4 +318,5 @@ function resetGame() {
   resetGameClock();
   resetPlayClock();
   setPossession(null);
+  resetTimeouts();
 }

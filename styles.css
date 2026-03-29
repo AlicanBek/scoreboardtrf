@@ -93,11 +93,17 @@ body {
   margin-bottom: 10px;
 }
 
-/* Two-column layout for score sections */
+/* Two-column layout — stacks on small phones */
 .control-grid-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 12px;
+}
+
+@media (min-width: 480px) {
+  .control-grid-row {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 .control-row {
@@ -244,10 +250,6 @@ button.safety {
   #controls {
     max-width: 900px;
     padding-bottom: 40px;
-  }
-
-  .control-grid-row {
-    grid-template-columns: 1fr 1fr;
   }
 
   button:hover {
