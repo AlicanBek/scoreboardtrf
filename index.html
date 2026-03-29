@@ -20,7 +20,7 @@
 
   <!-- CONTROL PANEL -->
   <div id="controls">
-    <h2>Control Panel</h2>
+    <h2>TRF Scoreboard Control Panel</h2>
 
     <div class="control-grid">
 
@@ -119,8 +119,12 @@
 
       <!-- Clocks Toggle -->
       <div class="control-section">
-        <div class="button-group">
-          <button id="btn-time-mgmt" onclick="toggleTimeMgmt()" class="go">Clocks: ON</button>
+        <div class="switch-row">
+          <h3 style="margin-bottom:0">Clocks</h3>
+          <label class="switch">
+            <input type="checkbox" id="ctrl-time-mgmt" checked onchange="toggleTimeMgmt()">
+            <span class="switch-slider"></span>
+          </label>
         </div>
       </div>
 

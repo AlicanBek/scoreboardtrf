@@ -640,19 +640,14 @@ function setPossession(team) {
 }
 
 function toggleTimeMgmt() {
-  showTimeMgmt = !showTimeMgmt;
-  var btn = document.getElementById('btn-time-mgmt');
+  showTimeMgmt = document.getElementById('ctrl-time-mgmt').checked;
   var timeSections = document.querySelectorAll('.time-mgmt-section');
-  if (showTimeMgmt) {
-    btn.textContent = 'Clocks: ON';
-    btn.className = 'go';
-    for (var i = 0; i < timeSections.length; i++) timeSections[i].style.display = '';
-  } else {
-    btn.textContent = 'Clocks: OFF';
-    btn.className = 'stop';
+  for (var i = 0; i < timeSections.length; i++) {
+    timeSections[i].style.display = showTimeMgmt ? '' : 'none';
+  }
+  if (!showTimeMgmt) {
     stopGameClock();
     stopPlayClock();
-    for (var i = 0; i < timeSections.length; i++) timeSections[i].style.display = 'none';
   }
 }
 
