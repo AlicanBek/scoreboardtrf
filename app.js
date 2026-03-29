@@ -13,6 +13,7 @@ let homeName = 'HOME';
 let awayName = 'AWAY';
 let homeTimeouts = 3;
 let awayTimeouts = 3;
+let selectedDown = 1;
 
 // Marquee state
 let marqueeText = '';
@@ -326,8 +327,6 @@ function setQuarter(q) {
     resetGameClock();
   }
 }
-
-let selectedDown = 1;
 
 function setDown(n) {
   selectedDown = n;
