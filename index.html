@@ -2,55 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="theme-color" content="#050505">
   <title>Football Scoreboard</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-  <!-- SCOREBOARD -->
+  <!-- SCOREBOARD (LED Canvas) -->
   <div id="scoreboard">
-    <div class="scoreboard-inner">
-
-      <!-- Top row: Teams & Score -->
-      <div class="score-row">
-        <div class="team home">
-          <div class="team-label">HOME</div>
-          <div class="team-name" id="home-name">HOME</div>
-          <div class="score" id="home-score">00</div>
-        </div>
-
-        <div class="center-info">
-          <div class="quarter-display">
-            <div class="label">QTR</div>
-            <div class="led-value" id="quarter">1</div>
-          </div>
-          <div class="clock-display">
-            <div class="led-value clock" id="game-clock">15:00</div>
-          </div>
-          <div class="down-distance">
-            <div class="led-value small" id="down-distance">1ST & 10</div>
-          </div>
-          <div class="play-clock-display">
-            <div class="label">PLAY CLOCK</div>
-            <div class="led-value small" id="play-clock">40</div>
-          </div>
-        </div>
-
-        <div class="team away">
-          <div class="team-label">AWAY</div>
-          <div class="team-name" id="away-name">AWAY</div>
-          <div class="score" id="away-score">00</div>
-        </div>
-      </div>
-
-      <!-- Possession indicator -->
-      <div class="possession-row">
-        <div class="possession-dot" id="home-possession"></div>
-        <div></div>
-        <div class="possession-dot" id="away-possession"></div>
-      </div>
-
+    <div class="board-frame">
+      <canvas id="led-canvas"></canvas>
     </div>
   </div>
 
@@ -65,37 +29,40 @@
         <h3>Teams</h3>
         <div class="control-row">
           <label>Home</label>
-          <input type="text" id="ctrl-home-name" value="HOME" maxlength="12">
+          <input type="text" id="ctrl-home-name" value="HOME" maxlength="6">
         </div>
         <div class="control-row">
           <label>Away</label>
-          <input type="text" id="ctrl-away-name" value="AWAY" maxlength="12">
+          <input type="text" id="ctrl-away-name" value="AWAY" maxlength="6">
         </div>
-        <button onclick="updateTeamNames()">Update Names</button>
-      </div>
-
-      <!-- Score -->
-      <div class="control-section">
-        <h3>Home Score</h3>
         <div class="button-group">
-          <button onclick="changeScore('home', 6)">TD (6)</button>
-          <button onclick="changeScore('home', 3)">FG (3)</button>
-          <button onclick="changeScore('home', 1)">XP (1)</button>
-          <button onclick="changeScore('home', 2)">2PT (2)</button>
-          <button onclick="changeScore('home', 2)" class="safety">Safety (2)</button>
-          <button onclick="changeScore('home', -1)" class="minus">-1</button>
+          <button onclick="updateTeamNames()">Update Names</button>
         </div>
       </div>
 
-      <div class="control-section">
-        <h3>Away Score</h3>
-        <div class="button-group">
-          <button onclick="changeScore('away', 6)">TD (6)</button>
-          <button onclick="changeScore('away', 3)">FG (3)</button>
-          <button onclick="changeScore('away', 1)">XP (1)</button>
-          <button onclick="changeScore('away', 2)">2PT (2)</button>
-          <button onclick="changeScore('away', 2)" class="safety">Safety (2)</button>
-          <button onclick="changeScore('away', -1)" class="minus">-1</button>
+      <!-- Score — side by side -->
+      <div class="control-grid-row">
+        <div class="control-section">
+          <h3>Home Score</h3>
+          <div class="button-group">
+            <button onclick="changeScore('home', 6)">TD +6</button>
+            <button onclick="changeScore('home', 3)">FG +3</button>
+            <button onclick="changeScore('home', 1)">XP +1</button>
+            <button onclick="changeScore('home', 2)">2PT</button>
+            <button onclick="changeScore('home', 2)" class="safety">SAF +2</button>
+            <button onclick="changeScore('home', -1)" class="minus">-1</button>
+          </div>
+        </div>
+        <div class="control-section">
+          <h3>Away Score</h3>
+          <div class="button-group">
+            <button onclick="changeScore('away', 6)">TD +6</button>
+            <button onclick="changeScore('away', 3)">FG +3</button>
+            <button onclick="changeScore('away', 1)">XP +1</button>
+            <button onclick="changeScore('away', 2)">2PT</button>
+            <button onclick="changeScore('away', 2)" class="safety">SAF +2</button>
+            <button onclick="changeScore('away', -1)" class="minus">-1</button>
+          </div>
         </div>
       </div>
 
@@ -105,67 +72,67 @@
         <div class="button-group">
           <button onclick="startGameClock()" class="go">Start</button>
           <button onclick="stopGameClock()" class="stop">Stop</button>
-          <button onclick="resetGameClock()">Reset (15:00)</button>
+          <button onclick="resetGameClock()">Reset 15:00</button>
         </div>
-        <div class="control-row">
-          <label>Set (MM:SS)</label>
-          <input type="text" id="ctrl-clock" value="15:00" maxlength="5">
-          <button onclick="setGameClock()">Set</button>
-        </div>
-      </div>
-
-      <!-- Quarter -->
-      <div class="control-section">
-        <h3>Quarter</h3>
-        <div class="button-group">
-          <button onclick="setQuarter(1)">1</button>
-          <button onclick="setQuarter(2)">2</button>
-          <button onclick="setQuarter(3)">3</button>
-          <button onclick="setQuarter(4)">4</button>
-          <button onclick="setQuarter('OT')">OT</button>
+        <div class="control-row" style="margin-top:10px">
+          <label>Set</label>
+          <input type="text" id="ctrl-clock" value="15:00" maxlength="5" placeholder="MM:SS" inputmode="numeric">
+          <button onclick="setGameClock()" style="flex:none">Set</button>
         </div>
       </div>
 
-      <!-- Down & Distance -->
-      <div class="control-section">
-        <h3>Down & Distance</h3>
-        <div class="control-row">
-          <label>Down</label>
-          <select id="ctrl-down">
-            <option value="1">1st</option>
-            <option value="2">2nd</option>
-            <option value="3">3rd</option>
-            <option value="4">4th</option>
-          </select>
+      <!-- Quarter + Down/Distance side by side -->
+      <div class="control-grid-row">
+        <div class="control-section">
+          <h3>Quarter</h3>
+          <div class="button-group">
+            <button onclick="setQuarter(1)">1</button>
+            <button onclick="setQuarter(2)">2</button>
+            <button onclick="setQuarter(3)">3</button>
+            <button onclick="setQuarter(4)">4</button>
+            <button onclick="setQuarter('OT')">OT</button>
+          </div>
         </div>
-        <div class="control-row">
-          <label>Distance</label>
-          <input type="number" id="ctrl-distance" value="10" min="1" max="99">
-        </div>
-        <div class="button-group">
-          <button onclick="updateDownDistance()">Update</button>
-          <button onclick="setGoal()">& Goal</button>
+        <div class="control-section">
+          <h3>Down & Distance</h3>
+          <div class="control-row">
+            <label>Dn</label>
+            <select id="ctrl-down">
+              <option value="1">1st</option>
+              <option value="2">2nd</option>
+              <option value="3">3rd</option>
+              <option value="4">4th</option>
+            </select>
+          </div>
+          <div class="control-row">
+            <label>Yds</label>
+            <input type="number" id="ctrl-distance" value="10" min="1" max="99" inputmode="numeric">
+          </div>
+          <div class="button-group">
+            <button onclick="updateDownDistance()">Set</button>
+            <button onclick="setGoal()">Goal</button>
+          </div>
         </div>
       </div>
 
-      <!-- Play Clock -->
-      <div class="control-section">
-        <h3>Play Clock</h3>
-        <div class="button-group">
-          <button onclick="startPlayClock(40)">40s</button>
-          <button onclick="startPlayClock(25)">25s</button>
-          <button onclick="stopPlayClock()" class="stop">Stop</button>
-          <button onclick="resetPlayClock()">Reset</button>
+      <!-- Play Clock + Possession side by side -->
+      <div class="control-grid-row">
+        <div class="control-section">
+          <h3>Play Clock</h3>
+          <div class="button-group">
+            <button onclick="startPlayClock(40)">40s</button>
+            <button onclick="startPlayClock(25)">25s</button>
+            <button onclick="stopPlayClock()" class="stop">Stop</button>
+            <button onclick="resetPlayClock()">Reset</button>
+          </div>
         </div>
-      </div>
-
-      <!-- Possession -->
-      <div class="control-section">
-        <h3>Possession</h3>
-        <div class="button-group">
-          <button onclick="setPossession('home')">Home</button>
-          <button onclick="setPossession('away')">Away</button>
-          <button onclick="setPossession(null)">Clear</button>
+        <div class="control-section">
+          <h3>Possession</h3>
+          <div class="button-group">
+            <button onclick="setPossession('home')">Home</button>
+            <button onclick="setPossession('away')">Away</button>
+            <button onclick="setPossession(null)">Clear</button>
+          </div>
         </div>
       </div>
 
@@ -180,6 +147,7 @@
     </div>
   </div>
 
+  <script src="led-font.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
