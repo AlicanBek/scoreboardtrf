@@ -175,6 +175,17 @@ function drawTimeoutDots(centerCol, row, remaining) {
   }
 }
 
+// Draw a string with tighter character gap
+function drawStringCenterTight(str, centerCol, startRow, color, brightColor, dimColor) {
+  var tightGap = 0; // no gap between chars
+  var totalW = str.length * (CHAR_W + tightGap) - tightGap;
+  var col = Math.round(centerCol - totalW / 2);
+  for (var i = 0; i < str.length; i++) {
+    drawChar(str[i], col, startRow, color, brightColor, dimColor);
+    col += CHAR_W + tightGap;
+  }
+}
+
 function drawStringClipped(str, startCol, startRow, clipLeft, clipRight, color, brightColor, dimColor) {
   let col = startCol;
   for (let i = 0; i < str.length; i++) {
@@ -508,10 +519,10 @@ function render() {
   } else {
     // ── EXPANDED LAYOUT (no clocks) ──
 
-    // Vertical dividers (same as full layout)
+    // Wider team sections: dividers at 48 and 72
     for (let r = 1; r < 34; r++) {
-      drawDot(40, r, false, null, null, '#150404');
-      drawDot(80, r, false, null, null, '#150404');
+      drawDot(48, r, false, null, null, '#150404');
+      drawDot(72, r, false, null, null, '#150404');
     }
 
     // Horizontal divider
@@ -519,23 +530,23 @@ function render() {
       drawDot(c, 35, false, null, null, '#150404');
     }
 
-    // HOME — same positions as full layout
-    drawStringCenter(homeName.substring(0, 6), 20, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
-    drawStringScaledCenter(formatScore(homeScore), 20, 12, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
-    drawPossessionDot(20, 28, possession === 'home');
+    // HOME — centered at col 24, names at 2x, scores at 2x
+    drawStringScaledCenter(homeName.substring(0, 6), 24, 2, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
+    drawStringScaledCenter(formatScore(homeScore), 24, 18, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
+    drawPossessionDot(24, 33, possession === 'home');
 
-    // AWAY
-    drawStringCenter(awayName.substring(0, 6), 100, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
-    drawStringScaledCenter(formatScore(awayScore), 100, 12, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
-    drawPossessionDot(100, 28, possession === 'away');
+    // AWAY — centered at col 96
+    drawStringScaledCenter(awayName.substring(0, 6), 96, 2, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
+    drawStringScaledCenter(formatScore(awayScore), 96, 18, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
+    drawPossessionDot(96, 33, possession === 'away');
 
-    // CENTER — quarter big, down & distance below
-    drawStringScaledCenter('Q' + currentQuarter.toString(), 60, 4, 2, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
-    drawStringCenter(currentDown, 60, 22, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
+    // CENTER — quarter normal, down & distance tight
+    drawStringCenter('Q' + currentQuarter.toString(), 60, 5, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
+    drawStringCenterTight(currentDown, 60, 16, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
 
     // BOTTOM STRIP
-    drawTimeoutDots(20, 38, homeTimeouts);
-    drawTimeoutDots(100, 38, awayTimeouts);
+    drawTimeoutDots(24, 38, homeTimeouts);
+    drawTimeoutDots(96, 38, awayTimeouts);
   }
 
   // Marquee divider (always shown)
