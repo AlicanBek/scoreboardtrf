@@ -25,9 +25,9 @@ let lastMarqueeTime = 0;
 const MARQUEE_SPEED = 30;
 
 // Animation state
-let animationActive = false;
-let animationType = '';  // 'referee' | 'touchdown' | 'trf'
-let animationStartTime = 0;
+var animationActive = false;
+var animationType = '';  // 'referee' | 'touchdown' | 'trf'
+var animationStartTime = 0;
 
 // LED dot settings
 const CHAR_W = 5;
