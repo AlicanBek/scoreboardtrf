@@ -26,10 +26,8 @@ const MARQUEE_SPEED = 30;
 
 // Animation state
 let animationActive = false;
-let animationFrame = 0;
+let animationType = '';  // 'referee' | 'touchdown' | 'trf'
 let animationStartTime = 0;
-const ANIMATION_FRAME_MS = 400; // ms per frame
-const ANIMATION_TOTAL_MS = 4000; // total duration
 
 // LED dot settings
 const CHAR_W = 5;
@@ -313,46 +311,169 @@ var REFEREE_SEQUENCE = [
   'touchdown', 'armsDown', 'touchdown',
 ];
 
-function renderAnimation() {
-  ctx.fillStyle = COLOR_BG;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+// ── Referee Animation ──
 
-  var now = performance.now();
-  var elapsed = now - animationStartTime;
+function renderRefereeAnimation(elapsed) {
+  var FRAME_MS = 400;
+  var TOTAL_MS = 4000;
+  if (elapsed >= TOTAL_MS) { animationActive = false; return; }
 
-  if (elapsed >= ANIMATION_TOTAL_MS) {
-    animationActive = false;
-    return;
-  }
+  var frameIdx = Math.floor(elapsed / FRAME_MS) % REFEREE_SEQUENCE.length;
+  var pixels = REFEREE_FRAME_DATA[REFEREE_SEQUENCE[frameIdx]];
 
-  // Pick frame
-  var frameIdx = Math.floor(elapsed / ANIMATION_FRAME_MS) % REFEREE_SEQUENCE.length;
-  var frameName = REFEREE_SEQUENCE[frameIdx];
-  var pixels = REFEREE_FRAME_DATA[frameName];
-
-  // Draw at 2x scale, centered on board
   var scale = 2;
-  var spriteW = 9; // chars wide in the art
-  var spriteH = 14;
-  var originCol = Math.round(60 - (spriteW * scale) / 2);
+  var originCol = Math.round(60 - (9 * scale) / 2);
   var originRow = 2;
 
   for (var i = 0; i < pixels.length; i++) {
     var p = pixels[i];
-    var col = p[0], row = p[1], color = p[2], bright = p[3];
     for (var sy = 0; sy < scale; sy++) {
       for (var sx = 0; sx < scale; sx++) {
-        drawDot(originCol + col * scale + sx, originRow + row * scale + sy, true, color, bright, COLOR_DIM);
+        drawDot(originCol + p[0] * scale + sx, originRow + p[1] * scale + sy, true, p[2], p[3], COLOR_DIM);
       }
     }
   }
 
-  // Text below
   drawStringCenter('REFEREE', 60, 32, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
   drawStringCenter('REVIEW', 60, 41, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
 }
 
-function playAnimation() {
+// ── Touchdown Animation ──
+
+function renderTouchdownAnimation(elapsed) {
+  var TOTAL_MS = 4000;
+  if (elapsed >= TOTAL_MS) { animationActive = false; return; }
+
+  var flash = Math.floor(elapsed / 200) % 2 === 0;
+  var color1 = flash ? COLOR_ON : COLOR_AMBER_ON;
+  var bright1 = flash ? COLOR_ON_BRIGHT : COLOR_AMBER_BRIGHT;
+  var color2 = flash ? COLOR_AMBER_ON : COLOR_ON;
+  var bright2 = flash ? COLOR_AMBER_BRIGHT : COLOR_ON_BRIGHT;
+
+  // Big "TD" at 3x scale centered
+  drawStringScaledCenter('TD', 60, 3, 3, color1, bright1, COLOR_DIM);
+
+  // "TOUCHDOWN" normal size below
+  drawStringCenter('TOUCHDOWN', 60, 26, color2, bright2, COLOR_DIM);
+
+  // Decorative stars flashing
+  var starPhase = Math.floor(elapsed / 150) % 4;
+  var starPositions = [[10,5],[110,5],[10,35],[110,35],[25,20],[95,20],[15,28],[105,28]];
+  for (var i = 0; i < starPositions.length; i++) {
+    if ((i + starPhase) % 3 !== 0) {
+      var sp = starPositions[i];
+      drawDot(sp[0], sp[1], true, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
+      drawDot(sp[0]-1, sp[1], true, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_DIM);
+      drawDot(sp[0]+1, sp[1], true, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_DIM);
+      drawDot(sp[0], sp[1]-1, true, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_DIM);
+      drawDot(sp[0], sp[1]+1, true, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_DIM);
+    }
+  }
+
+  // Bottom text
+  drawStringCenter('6 POINTS', 60, 38, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
+}
+
+// ── TRF Animation ──
+
+// Football pixel art (small, for scrolling in)
+var FOOTBALL_PIXELS = (function () {
+  var art = [
+    '....BBB....',
+    '..BBBBBBB..',
+    '.BBBWBWBBB.',
+    'BBBBBBBBBBB',
+    '.BBBWBWBBB.',
+    '..BBBBBBB..',
+    '....BBB....',
+  ];
+  var pixels = [];
+  for (var r = 0; r < art.length; r++) {
+    for (var c = 0; c < art[r].length; c++) {
+      var ch = art[r][c];
+      if (ch === 'B') pixels.push([c, r, '#8B4513', '#A0522D']);
+      else if (ch === 'W') pixels.push([c, r, '#ffffff', '#eeeeee']);
+    }
+  }
+  return { pixels: pixels, width: 11, height: 7 };
+})();
+
+function renderTRFAnimation(elapsed) {
+  var TOTAL_MS = 6000;
+  if (elapsed >= TOTAL_MS) { animationActive = false; return; }
+
+  // Phase 1 (0-1500ms): Football enters from right to center
+  // Phase 2 (1500-2500ms): Football at center, text fades in
+  // Phase 3 (2500-6000ms): Full display with text
+
+  var phase1End = 1500;
+  var phase2End = 2500;
+
+  if (elapsed < phase1End) {
+    // Football scrolling in from right
+    var progress = elapsed / phase1End;
+    var footballCol = Math.round(BOARD_COLS + 5 - progress * (60 + FOOTBALL_PIXELS.width / 2 + 5));
+    var footballRow = Math.round((BOARD_ROWS - FOOTBALL_PIXELS.height) / 2 - 8);
+
+    for (var i = 0; i < FOOTBALL_PIXELS.pixels.length; i++) {
+      var p = FOOTBALL_PIXELS.pixels[i];
+      var dc = footballCol + p[0];
+      if (dc >= 0 && dc < BOARD_COLS) {
+        drawDot(dc, footballRow + p[1], true, p[2], p[3], COLOR_DIM);
+      }
+    }
+  } else {
+    // Football centered
+    var fbCol = Math.round(60 - FOOTBALL_PIXELS.width / 2);
+    var fbRow = 4;
+    for (var i = 0; i < FOOTBALL_PIXELS.pixels.length; i++) {
+      var p = FOOTBALL_PIXELS.pixels[i];
+      drawDot(fbCol + p[0], fbRow + p[1], true, p[2], p[3], COLOR_DIM);
+    }
+
+    // Text appears
+    if (elapsed >= phase2End || elapsed >= phase1End) {
+      var textAlpha = elapsed < phase2End ? (elapsed - phase1End) / (phase2End - phase1End) : 1;
+      // Use full brightness since we can't really fade LED dots — show progressively
+      var showLine1 = elapsed >= phase1End + 200;
+      var showLine2 = elapsed >= phase1End + 500;
+      var showLine3 = elapsed >= phase1End + 800;
+
+      var green = '#00cc44';
+      var greenBright = '#22ff66';
+      var greenDim = '#051a0a';
+
+      if (showLine1) {
+        drawStringCenter('T\u00DCRKIYE', 60, 15, green, greenBright, greenDim);
+      }
+      if (showLine2) {
+        drawStringCenter('RAGBI', 60, 25, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
+      }
+      if (showLine3) {
+        drawStringCenter('FEDERASYONU', 60, 35, green, greenBright, greenDim);
+      }
+    }
+  }
+}
+
+// ── Animation Dispatcher ──
+
+function renderAnimation() {
+  ctx.fillStyle = COLOR_BG;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  var elapsed = performance.now() - animationStartTime;
+
+  switch (animationType) {
+    case 'referee': renderRefereeAnimation(elapsed); break;
+    case 'touchdown': renderTouchdownAnimation(elapsed); break;
+    case 'trf': renderTRFAnimation(elapsed); break;
+    default: animationActive = false;
+  }
+}
+
+function playAnimation(type) {
+  animationType = type;
   animationActive = true;
   animationStartTime = performance.now();
 }
