@@ -508,30 +508,34 @@ function render() {
   } else {
     // ── EXPANDED LAYOUT (no clocks) ──
 
-    // Single center divider
-    for (let r = 1; r < 44; r++) {
-      drawDot(60, r, false, null, null, '#150404');
+    // Vertical dividers (same as full layout)
+    for (let r = 1; r < 34; r++) {
+      drawDot(40, r, false, null, null, '#150404');
+      drawDot(80, r, false, null, null, '#150404');
     }
 
-    // HOME — large name + 3x score
-    drawStringScaledCenter(homeName.substring(0, 6), 30, 2, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
-    drawStringScaledCenter(formatScore(homeScore), 30, 18, 3, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
-    drawPossessionDot(30, 42, possession === 'home');
+    // Horizontal divider
+    for (let c = 1; c < BOARD_COLS - 1; c++) {
+      drawDot(c, 35, false, null, null, '#150404');
+    }
 
-    // AWAY — large name + 3x score
-    drawStringScaledCenter(awayName.substring(0, 6), 90, 2, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
-    drawStringScaledCenter(formatScore(awayScore), 90, 18, 3, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
-    drawPossessionDot(90, 42, possession === 'away');
+    // HOME — same positions as full layout
+    drawStringCenter(homeName.substring(0, 6), 20, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
+    drawStringScaledCenter(formatScore(homeScore), 20, 12, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
+    drawPossessionDot(20, 28, possession === 'home');
 
-    // Quarter (small, at top center)
-    drawStringCenter('Q' + currentQuarter.toString(), 60, 2, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
+    // AWAY
+    drawStringCenter(awayName.substring(0, 6), 100, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
+    drawStringScaledCenter(formatScore(awayScore), 100, 12, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
+    drawPossessionDot(100, 28, possession === 'away');
 
-    // Down & distance (center, below quarter)
-    drawStringCenter(currentDown, 60, 12, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
+    // CENTER — quarter big, down & distance below
+    drawStringScaledCenter('Q' + currentQuarter.toString(), 60, 4, 2, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
+    drawStringCenter(currentDown, 60, 22, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
 
-    // Timeouts
-    drawTimeoutDots(30, 40, homeTimeouts);
-    drawTimeoutDots(90, 40, awayTimeouts);
+    // BOTTOM STRIP
+    drawTimeoutDots(20, 38, homeTimeouts);
+    drawTimeoutDots(100, 38, awayTimeouts);
   }
 
   // Marquee divider (always shown)
