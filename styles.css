@@ -250,8 +250,8 @@ button.safety {
 
 /* ── Desktop (1024px+) ── */
 @media (min-width: 1024px) {
-  #scoreboard {
-    position: static;
+  .board-frame {
+    max-width: 860px;
   }
 
   #controls {

@@ -209,114 +209,108 @@ function resizeCanvas() {
   canvas.style.height = canvas.height + 'px';
 }
 
-// Referee pixel art frames (each is an array of [col, row] offsets from center)
-// Drawn relative to board center. 'W' = white dot, 'Y' = yellow (flag)
-// Frame format: array of {dots: [[col,row],...], color: 'W'|'Y'|'R'}
-
-var REFEREE_FRAMES = (function () {
-  // Build frames from string art (easier to edit)
-  // Legend: W=white, B=black(stripe), Y=yellow, .=empty
-  function parseFrame(lines, originCol, originRow) {
-    var dots = [];
+// Referee pixel art frames — drawn at 2x scale so each pixel = 2x2 LED dots
+// Legend: W=white, B=black(stripe), Y=yellow, .=empty
+var REFEREE_FRAME_DATA = (function () {
+  function parseFrame(lines) {
+    var pixels = [];
     for (var r = 0; r < lines.length; r++) {
       for (var c = 0; c < lines[r].length; c++) {
         var ch = lines[r][c];
-        if (ch === 'W') dots.push([originCol + c, originRow + r, '#ffffff', '#ffffff']);
-        else if (ch === 'B') dots.push([originCol + c, originRow + r, '#222222', '#444444']);
-        else if (ch === 'Y') dots.push([originCol + c, originRow + r, '#ffdd00', '#ffee44']);
+        if (ch === 'W') pixels.push([c, r, '#ffffff', '#eeeeee']);
+        else if (ch === 'B') pixels.push([c, r, '#111111', '#333333']);
+        else if (ch === 'Y') pixels.push([c, r, '#ffdd00', '#ffee44']);
+        else if (ch === 'S') pixels.push([c, r, '#ffaa88', '#ffccaa']); // skin
       }
     }
-    return dots;
+    return pixels;
   }
-
-  var cx = 57; // center x
-  var cy = 5;  // top y
 
   // Frame 1: arms down
   var f1 = [
-    '..WWW..',
-    '..WBW..',
-    '.WWWWW.',
-    '..WBW..',
-    '..WBW..',
-    'W.WBW.W',
-    '.WWBWW.',
-    '..WBW..',
-    '..WBW..',
-    '..WBW..',
-    '..WBW..',
-    '..W.W..',
-    '..W.W..',
-    '.W...W.',
+    '...SSS...',
+    '...SSS...',
+    '..WBWBW..',
+    '..WBWBW..',
+    '..WBWBW..',
+    '.SWBWBWS.',
+    'S.WBWBW.S',
+    '..WBWBW..',
+    '...WBW...',
+    '...WBW...',
+    '...W.W...',
+    '...W.W...',
+    '..W...W..',
+    '..W...W..',
   ];
 
-  // Frame 2: arms out (T-pose, timeout signal)
+  // Frame 2: arms out (timeout T-pose)
   var f2 = [
-    '..WWW..',
-    '..WBW..',
-    '.WWWWW.',
-    '..WBW..',
-    '..WBW..',
-    'WWWBWWW',
-    '.WWBWW.',
-    '..WBW..',
-    '..WBW..',
-    '..WBW..',
-    '..WBW..',
-    '..W.W..',
-    '..W.W..',
-    '.W...W.',
+    '...SSS...',
+    '...SSS...',
+    '..WBWBW..',
+    '..WBWBW..',
+    '..WBWBW..',
+    'SWWBWBWWS',
+    'S.WBWBW.S',
+    '..WBWBW..',
+    '...WBW...',
+    '...WBW...',
+    '...W.W...',
+    '...W.W...',
+    '..W...W..',
+    '..W...W..',
   ];
 
-  // Frame 3: right arm up (flag throw)
+  // Frame 3: right arm up with flag
   var f3 = [
-    '..WWW.Y',
-    '..WBW.Y',
-    '.WWWWWY',
-    '..WBW..',
-    '..WBW..',
-    'W.WBW..',
-    '.WWBWW.',
-    '..WBW..',
-    '..WBW..',
-    '..WBW..',
-    '..WBW..',
-    '..W.W..',
-    '..W.W..',
-    '.W...W.',
+    '...SSS.YY',
+    '...SSS.YY',
+    '..WBWBWS.',
+    '..WBWBW..',
+    '..WBWBW..',
+    '.SWBWBW..',
+    'S.WBWBW..',
+    '..WBWBW..',
+    '...WBW...',
+    '...WBW...',
+    '...W.W...',
+    '...W.W...',
+    '..W...W..',
+    '..W...W..',
   ];
 
-  // Frame 4: both arms up
+  // Frame 4: both arms up (touchdown)
   var f4 = [
-    'W.WWW.W',
-    '.WWBWW.',
-    '.WWWWW.',
-    '..WBW..',
-    '..WBW..',
-    '..WBW..',
-    '..WBW..',
-    '..WBW..',
-    '..WBW..',
-    '..WBW..',
-    '..WBW..',
-    '..W.W..',
-    '..W.W..',
-    '.W...W.',
+    'S..SSS..S',
+    '.S.SSS.S.',
+    '..WBWBW..',
+    '..WBWBW..',
+    '..WBWBW..',
+    '..WBWBW..',
+    '..WBWBW..',
+    '..WBWBW..',
+    '...WBW...',
+    '...WBW...',
+    '...W.W...',
+    '...W.W...',
+    '..W...W..',
+    '..W...W..',
   ];
 
-  return [
-    parseFrame(f1, cx, cy),
-    parseFrame(f2, cx, cy),
-    parseFrame(f1, cx, cy),
-    parseFrame(f3, cx, cy),
-    parseFrame(f1, cx, cy),
-    parseFrame(f4, cx, cy),
-    parseFrame(f2, cx, cy),
-    parseFrame(f1, cx, cy),
-    parseFrame(f4, cx, cy),
-    parseFrame(f2, cx, cy),
-  ];
+  return {
+    armsDown: parseFrame(f1),
+    timeout: parseFrame(f2),
+    flag: parseFrame(f3),
+    touchdown: parseFrame(f4),
+  };
 })();
+
+var REFEREE_SEQUENCE = [
+  'armsDown', 'timeout', 'armsDown', 'timeout',
+  'armsDown', 'flag', 'armsDown',
+  'touchdown', 'armsDown', 'touchdown',
+];
 
 function renderAnimation() {
   ctx.fillStyle = COLOR_BG;
@@ -331,18 +325,30 @@ function renderAnimation() {
   }
 
   // Pick frame
-  var frameIdx = Math.floor(elapsed / ANIMATION_FRAME_MS) % REFEREE_FRAMES.length;
-  var frame = REFEREE_FRAMES[frameIdx];
+  var frameIdx = Math.floor(elapsed / ANIMATION_FRAME_MS) % REFEREE_SEQUENCE.length;
+  var frameName = REFEREE_SEQUENCE[frameIdx];
+  var pixels = REFEREE_FRAME_DATA[frameName];
 
-  // Draw referee
-  for (var i = 0; i < frame.length; i++) {
-    var d = frame[i];
-    drawDot(d[0], d[1], true, d[2], d[3], COLOR_DIM);
+  // Draw at 2x scale, centered on board
+  var scale = 2;
+  var spriteW = 9; // chars wide in the art
+  var spriteH = 14;
+  var originCol = Math.round(60 - (spriteW * scale) / 2);
+  var originRow = 2;
+
+  for (var i = 0; i < pixels.length; i++) {
+    var p = pixels[i];
+    var col = p[0], row = p[1], color = p[2], bright = p[3];
+    for (var sy = 0; sy < scale; sy++) {
+      for (var sx = 0; sx < scale; sx++) {
+        drawDot(originCol + col * scale + sx, originRow + row * scale + sy, true, color, bright, COLOR_DIM);
+      }
+    }
   }
 
-  // Draw text below referee
-  drawStringCenter('REFEREE', 60, 22, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
-  drawStringCenter('REVIEW', 60, 32, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
+  // Text below
+  drawStringCenter('REFEREE', 60, 32, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
+  drawStringCenter('REVIEW', 60, 41, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
 }
 
 function playAnimation() {
