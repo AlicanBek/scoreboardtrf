@@ -95,21 +95,18 @@
         </div>
         <div class="control-section">
           <h3>Down & Distance</h3>
-          <div class="control-row">
-            <label>Dn</label>
-            <select id="ctrl-down">
-              <option value="1">1st</option>
-              <option value="2">2nd</option>
-              <option value="3">3rd</option>
-              <option value="4">4th</option>
-            </select>
+          <div class="button-group">
+            <button onclick="setDown(1)">1st</button>
+            <button onclick="setDown(2)">2nd</button>
+            <button onclick="setDown(3)">3rd</button>
+            <button onclick="setDown(4)">4th</button>
           </div>
-          <div class="control-row">
+          <div class="control-row" style="margin-top:8px">
             <label>Yds</label>
             <input type="number" id="ctrl-distance" value="10" min="1" max="99" inputmode="numeric">
           </div>
           <div class="button-group">
-            <button onclick="updateDownDistance()">Set</button>
+            <button onclick="applyDistance()">Set Yds</button>
             <button onclick="setGoal()">Goal</button>
           </div>
         </div>

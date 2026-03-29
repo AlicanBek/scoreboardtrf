@@ -327,15 +327,21 @@ function setQuarter(q) {
   }
 }
 
-function updateDownDistance() {
-  const down = document.getElementById('ctrl-down').value;
+let selectedDown = 1;
+
+function setDown(n) {
+  selectedDown = n;
   const dist = document.getElementById('ctrl-distance').value;
-  currentDown = ordinal(parseInt(down, 10)) + ' & ' + dist;
+  currentDown = ordinal(n) + ' & ' + dist;
+}
+
+function applyDistance() {
+  const dist = document.getElementById('ctrl-distance').value;
+  currentDown = ordinal(selectedDown) + ' & ' + dist;
 }
 
 function setGoal() {
-  const down = document.getElementById('ctrl-down').value;
-  currentDown = ordinal(parseInt(down, 10)) + ' & GOAL';
+  currentDown = ordinal(selectedDown) + ' & GOAL';
 }
 
 function startPlayClock(seconds) {
@@ -417,7 +423,7 @@ function resetGame() {
   document.getElementById('ctrl-away-name').value = 'AWAY';
   currentQuarter = '1';
   currentDown = '1ST & 10';
-  document.getElementById('ctrl-down').value = '1';
+  selectedDown = 1;
   document.getElementById('ctrl-distance').value = '10';
   resetGameClock();
   resetPlayClock();
