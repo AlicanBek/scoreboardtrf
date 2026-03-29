@@ -17,17 +17,12 @@ let selectedDown = 1;
 
 // Marquee state
 let marqueeText = '';
-let marqueeOffset = 0;      // current scroll position in dot columns
-let marqueeRepeatsLeft = 0;  // how many passes remain
+let marqueeOffset = 0;
+let marqueeRepeatsLeft = 0;
 let marqueeActive = false;
-let marqueeTextWidth = 0;    // total width in dot columns
+let marqueeTextWidth = 0;
 let lastMarqueeTime = 0;
-const MARQUEE_SPEED = 30;    // dots per second
-
-// ── Canvas Setup ──
-
-const canvas = document.getElementById('led-canvas');
-const ctx = canvas.getContext('2d');
+const MARQUEE_SPEED = 30;
 
 // LED dot settings
 const CHAR_W = 5;
@@ -42,26 +37,28 @@ const COLOR_AMBER_ON = '#ffaa00';
 const COLOR_AMBER_BRIGHT = '#ffcc44';
 const COLOR_AMBER_DIM = '#1a1005';
 
-// Board layout in dot units
 const BOARD_COLS = 120;
 const BOARD_ROWS = 55;
 
-// Computed pixel values
-let dotRadius, dotSpacing;
+// Canvas refs (set on init)
+let canvas, ctx, dotRadius, dotSpacing;
 
-function resizeCanvas() {
-  const containerWidth = canvas.parentElement.clientWidth - 12; // frame padding
-  dotSpacing = Math.max(2, Math.floor(containerWidth / BOARD_COLS));
-  dotRadius = Math.max(0.8, dotSpacing * 0.36);
+// ── Helpers ──
 
-  canvas.width = BOARD_COLS * dotSpacing;
-  canvas.height = BOARD_ROWS * dotSpacing;
-  canvas.style.width = canvas.width + 'px';
-  canvas.style.height = canvas.height + 'px';
+function formatScore(n) {
+  return n.toString().padStart(2, '0');
 }
 
-resizeCanvas();
-window.addEventListener('resize', resizeCanvas);
+function formatClock(totalSeconds) {
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return m.toString().padStart(2, '0') + ':' + s.toString().padStart(2, '0');
+}
+
+function ordinal(n) {
+  const suffixes = { 1: '1ST', 2: '2ND', 3: '3RD', 4: '4TH' };
+  return suffixes[n] || n;
+}
 
 // ── LED Drawing ──
 
@@ -70,7 +67,6 @@ function drawDot(col, row, on, color, brightColor, dimColor) {
   const y = row * dotSpacing + dotSpacing / 2;
 
   if (on) {
-    // Glow
     const glowR = dotRadius * 2.5;
     const glow = ctx.createRadialGradient(x, y, 0, x, y, glowR);
     glow.addColorStop(0, brightColor || COLOR_ON_BRIGHT);
@@ -79,7 +75,6 @@ function drawDot(col, row, on, color, brightColor, dimColor) {
     ctx.fillStyle = glow;
     ctx.fillRect(x - glowR, y - glowR, glowR * 2, glowR * 2);
 
-    // Dot
     ctx.beginPath();
     ctx.arc(x, y, dotRadius, 0, Math.PI * 2);
     ctx.fillStyle = brightColor || COLOR_ON_BRIGHT;
@@ -116,32 +111,6 @@ function drawStringCenter(str, centerCol, startRow, color, brightColor, dimColor
   drawString(str, startC, startRow, color, brightColor, dimColor);
 }
 
-function drawPossessionDot(col, row, active) {
-  const cx = col * dotSpacing + dotSpacing / 2;
-  const cy = row * dotSpacing + dotSpacing / 2;
-  const r = dotRadius * 2.5;
-
-  if (active) {
-    const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, r * 3);
-    glow.addColorStop(0, COLOR_ON_BRIGHT);
-    glow.addColorStop(0.3, COLOR_ON);
-    glow.addColorStop(1, 'transparent');
-    ctx.fillStyle = glow;
-    ctx.fillRect(cx - r * 3, cy - r * 3, r * 6, r * 6);
-
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.fillStyle = COLOR_ON_BRIGHT;
-    ctx.fill();
-  } else {
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.fillStyle = '#1a0808';
-    ctx.fill();
-  }
-}
-
-// Draw a character scaled up (each LED dot becomes scale x scale dots)
 function drawCharScaled(char, startCol, startRow, scale, color, brightColor, dimColor) {
   const glyph = LED_FONT[char.toUpperCase()] || LED_FONT[' '];
   for (let row = 0; row < CHAR_H; row++) {
@@ -167,6 +136,31 @@ function drawStringScaledCenter(str, centerCol, startRow, scale, color, brightCo
   }
 }
 
+function drawPossessionDot(col, row, active) {
+  const cx = col * dotSpacing + dotSpacing / 2;
+  const cy = row * dotSpacing + dotSpacing / 2;
+  const r = dotRadius * 2.5;
+
+  if (active) {
+    const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, r * 3);
+    glow.addColorStop(0, COLOR_ON_BRIGHT);
+    glow.addColorStop(0.3, COLOR_ON);
+    glow.addColorStop(1, 'transparent');
+    ctx.fillStyle = glow;
+    ctx.fillRect(cx - r * 3, cy - r * 3, r * 6, r * 6);
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fillStyle = COLOR_ON_BRIGHT;
+    ctx.fill();
+  } else {
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fillStyle = '#1a0808';
+    ctx.fill();
+  }
+}
+
 function drawTimeoutDots(centerCol, row, remaining) {
   const gap = 4;
   const startCol = centerCol - gap;
@@ -175,12 +169,10 @@ function drawTimeoutDots(centerCol, row, remaining) {
   }
 }
 
-// Draw a string clipped to a column range (for marquee)
 function drawStringClipped(str, startCol, startRow, clipLeft, clipRight, color, brightColor, dimColor) {
   let col = startCol;
   for (let i = 0; i < str.length; i++) {
     const charEnd = col + CHAR_W;
-    // Skip chars entirely outside clip region
     if (charEnd > clipLeft && col < clipRight) {
       const glyph = LED_FONT[str[i].toUpperCase()] || LED_FONT[' '];
       for (let row = 0; row < CHAR_H; row++) {
@@ -199,42 +191,43 @@ function drawStringClipped(str, startCol, startRow, clipLeft, clipRight, color, 
 
 // ── Render ──
 
-function formatScore(n) {
-  return n.toString().padStart(2, '0');
-}
+function resizeCanvas() {
+  const containerWidth = canvas.parentElement.clientWidth - 12;
+  dotSpacing = Math.max(2, Math.floor(containerWidth / BOARD_COLS));
+  dotRadius = Math.max(0.8, dotSpacing * 0.36);
 
-function formatClock(totalSeconds) {
-  const m = Math.floor(totalSeconds / 60);
-  const s = totalSeconds % 60;
-  return m.toString().padStart(2, '0') + ':' + s.toString().padStart(2, '0');
+  canvas.width = BOARD_COLS * dotSpacing;
+  canvas.height = BOARD_ROWS * dotSpacing;
+  canvas.style.width = canvas.width + 'px';
+  canvas.style.height = canvas.height + 'px';
 }
 
 function render() {
   ctx.fillStyle = COLOR_BG;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Vertical dividers (top section only)
+  // Vertical dividers
   for (let r = 1; r < 34; r++) {
     drawDot(40, r, false, null, null, '#150404');
     drawDot(80, r, false, null, null, '#150404');
   }
 
-  // Horizontal divider separating top and bottom strip
+  // Horizontal divider
   for (let c = 1; c < BOARD_COLS - 1; c++) {
     drawDot(c, 35, false, null, null, '#150404');
   }
 
-  // HOME (left: centered at col 20)
+  // HOME
   drawStringCenter(homeName.substring(0, 6), 20, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
   drawStringScaledCenter(formatScore(homeScore), 20, 12, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
   drawPossessionDot(20, 28, possession === 'home');
 
-  // AWAY (right: centered at col 100)
+  // AWAY
   drawStringCenter(awayName.substring(0, 6), 100, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
   drawStringScaledCenter(formatScore(awayScore), 100, 12, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
   drawPossessionDot(100, 28, possession === 'away');
 
-  // CENTER — QTR + Clock + Play Clock (all fit within cols 41-79)
+  // CENTER
   drawStringCenter('QTR', 53, 2, '#cc1111', '#ee3333', '#120303');
   drawStringCenter(currentQuarter.toString(), 53, 11, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
   drawStringCenter(formatClock(gameClockSeconds), 60, 21, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
@@ -242,31 +235,26 @@ function render() {
   drawStringCenter(playClockSeconds.toString().padStart(2, '0'), 67, 11, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
 
   // BOTTOM STRIP
-  // Timeouts left
   drawTimeoutDots(20, 38, homeTimeouts);
-  // Down & Distance center
   drawStringCenter(currentDown, 60, 37, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
-  // Timeouts right
   drawTimeoutDots(100, 38, awayTimeouts);
 
-  // Horizontal divider above marquee
+  // Marquee divider
   for (let c = 1; c < BOARD_COLS - 1; c++) {
     drawDot(c, 45, false, null, null, '#150404');
   }
 
-  // MARQUEE ROW (rows 47-53)
-  const MARQUEE_ROW = 47;
-  const MARQUEE_LEFT = 2;
-  const MARQUEE_RIGHT = BOARD_COLS - 2;
-
+  // MARQUEE
   if (marqueeActive && marqueeText.length > 0) {
-    // Advance scroll based on time
+    const MARQUEE_ROW = 47;
+    const MARQUEE_LEFT = 2;
+    const MARQUEE_RIGHT = BOARD_COLS - 2;
+
     const now = performance.now();
     if (lastMarqueeTime > 0) {
       const dt = (now - lastMarqueeTime) / 1000;
       marqueeOffset -= dt * MARQUEE_SPEED;
 
-      // Text has fully scrolled off the left
       if (marqueeOffset < -marqueeTextWidth) {
         marqueeRepeatsLeft--;
         if (marqueeRepeatsLeft <= 0) {
@@ -291,14 +279,7 @@ function render() {
   requestAnimationFrame(render);
 }
 
-render();
-
 // ── Game Logic ──
-
-function ordinal(n) {
-  const suffixes = { 1: '1ST', 2: '2ND', 3: '3RD', 4: '4TH' };
-  return suffixes[n] || n;
-}
 
 function changeScore(team, points) {
   if (team === 'home') {
@@ -315,7 +296,7 @@ function updateTeamNames() {
 
 function startGameClock() {
   if (gameClockInterval) return;
-  gameClockInterval = setInterval(() => {
+  gameClockInterval = setInterval(function () {
     if (gameClockSeconds <= 0) {
       stopGameClock();
       return;
@@ -336,11 +317,11 @@ function resetGameClock() {
 
 function setGameClock() {
   stopGameClock();
-  const val = document.getElementById('ctrl-clock').value;
-  const parts = val.split(':');
+  var val = document.getElementById('ctrl-clock').value;
+  var parts = val.split(':');
   if (parts.length === 2) {
-    const m = parseInt(parts[0], 10) || 0;
-    const s = parseInt(parts[1], 10) || 0;
+    var m = parseInt(parts[0], 10) || 0;
+    var s = parseInt(parts[1], 10) || 0;
     gameClockSeconds = m * 60 + s;
   }
 }
@@ -354,12 +335,12 @@ function setQuarter(q) {
 
 function setDown(n) {
   selectedDown = n;
-  const dist = document.getElementById('ctrl-distance').value;
+  var dist = document.getElementById('ctrl-distance').value;
   currentDown = ordinal(n) + ' & ' + dist;
 }
 
 function applyDistance() {
-  const dist = document.getElementById('ctrl-distance').value;
+  var dist = document.getElementById('ctrl-distance').value;
   currentDown = ordinal(selectedDown) + ' & ' + dist;
 }
 
@@ -370,7 +351,7 @@ function setGoal() {
 function startPlayClock(seconds) {
   stopPlayClock();
   playClockSeconds = seconds;
-  playClockInterval = setInterval(() => {
+  playClockInterval = setInterval(function () {
     if (playClockSeconds <= 0) {
       stopPlayClock();
       return;
@@ -403,16 +384,14 @@ function resetTimeouts() {
   awayTimeouts = 3;
 }
 
-// ── Marquee ──
-
 function publishMarquee() {
-  const text = document.getElementById('ctrl-marquee-text').value.toUpperCase();
-  const repeats = parseInt(document.getElementById('ctrl-marquee-repeats').value, 10) || 1;
+  var text = document.getElementById('ctrl-marquee-text').value.toUpperCase();
+  var repeats = parseInt(document.getElementById('ctrl-marquee-repeats').value, 10) || 1;
   if (!text.trim()) return;
 
   marqueeText = text;
   marqueeTextWidth = text.length * (CHAR_W + CHAR_GAP) - CHAR_GAP;
-  marqueeOffset = BOARD_COLS; // start off-screen right
+  marqueeOffset = BOARD_COLS;
   marqueeRepeatsLeft = repeats;
   marqueeActive = true;
   lastMarqueeTime = 0;
@@ -427,7 +406,7 @@ function stopMarquee() {
 }
 
 function updateMarqueeStatus() {
-  const el = document.getElementById('marquee-status');
+  var el = document.getElementById('marquee-status');
   if (marqueeActive) {
     el.textContent = 'Scrolling... (' + marqueeRepeatsLeft + ' left)';
     el.style.color = '#6f6';
@@ -454,3 +433,13 @@ function resetGame() {
   resetTimeouts();
   stopMarquee();
 }
+
+// ── Init (runs after DOM is ready) ──
+
+document.addEventListener('DOMContentLoaded', function () {
+  canvas = document.getElementById('led-canvas');
+  ctx = canvas.getContext('2d');
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+  render();
+});
