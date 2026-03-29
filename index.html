@@ -40,6 +40,17 @@
         </div>
       </div>
 
+      <!-- Time Management Toggle -->
+      <div class="control-section">
+        <div class="switch-row">
+          <h3 style="margin-bottom:0">Time Management</h3>
+          <label class="switch">
+            <input type="checkbox" id="ctrl-time-mgmt" checked onchange="toggleTimeMgmt()">
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+      </div>
+
       <!-- Score — side by side -->
       <div class="control-grid-row">
         <div class="control-section">
@@ -67,7 +78,7 @@
       </div>
 
       <!-- Game Clock -->
-      <div class="control-section">
+      <div class="control-section time-mgmt-section">
         <h3>Game Clock</h3>
         <div class="button-group">
           <button onclick="startGameClock()" class="go">Start</button>
@@ -82,7 +93,7 @@
       </div>
 
       <!-- Quarter + Down/Distance side by side -->
-      <div class="control-grid-row">
+      <div class="control-grid-row time-mgmt-section">
         <div class="control-section">
           <h3>Quarter</h3>
           <div class="button-group">
@@ -113,7 +124,7 @@
       </div>
 
       <!-- Play Clock + Possession side by side -->
-      <div class="control-grid-row">
+      <div class="control-grid-row time-mgmt-section">
         <div class="control-section">
           <h3>Play Clock</h3>
           <div class="button-group">
@@ -134,7 +145,7 @@
       </div>
 
       <!-- Timeouts -->
-      <div class="control-grid-row">
+      <div class="control-grid-row time-mgmt-section">
         <div class="control-section">
           <h3>Home Timeouts</h3>
           <div class="button-group">

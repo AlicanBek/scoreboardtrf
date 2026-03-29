@@ -14,6 +14,7 @@ let awayName = 'AWAY';
 let homeTimeouts = 3;
 let awayTimeouts = 3;
 let selectedDown = 1;
+var showTimeMgmt = true;
 
 // Marquee state
 let marqueeText = '';
@@ -470,41 +471,60 @@ function render() {
   ctx.fillStyle = COLOR_BG;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Vertical dividers
-  for (let r = 1; r < 34; r++) {
-    drawDot(40, r, false, null, null, '#150404');
-    drawDot(80, r, false, null, null, '#150404');
+  if (showTimeMgmt) {
+    // ── FULL LAYOUT (with time management) ──
+
+    // Vertical dividers
+    for (let r = 1; r < 34; r++) {
+      drawDot(40, r, false, null, null, '#150404');
+      drawDot(80, r, false, null, null, '#150404');
+    }
+
+    // Horizontal divider
+    for (let c = 1; c < BOARD_COLS - 1; c++) {
+      drawDot(c, 35, false, null, null, '#150404');
+    }
+
+    // HOME
+    drawStringCenter(homeName.substring(0, 6), 20, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
+    drawStringScaledCenter(formatScore(homeScore), 20, 12, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
+    drawPossessionDot(20, 28, possession === 'home');
+
+    // AWAY
+    drawStringCenter(awayName.substring(0, 6), 100, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
+    drawStringScaledCenter(formatScore(awayScore), 100, 12, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
+    drawPossessionDot(100, 28, possession === 'away');
+
+    // CENTER
+    drawStringCenter('Q' + currentQuarter.toString(), 60, 2, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
+    drawStringCenter(formatClock(gameClockSeconds), 60, 12, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
+    drawStringCenter('PC ' + playClockSeconds.toString().padStart(2, '0'), 60, 22, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
+
+    // BOTTOM STRIP
+    drawTimeoutDots(20, 38, homeTimeouts);
+    drawStringCenter(currentDown, 60, 37, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
+    drawTimeoutDots(100, 38, awayTimeouts);
+
+  } else {
+    // ── SIMPLE LAYOUT (no time management) ──
+
+    // Vertical divider (single, center)
+    for (let r = 1; r < 44; r++) {
+      drawDot(60, r, false, null, null, '#150404');
+    }
+
+    // HOME (left half, centered at col 30)
+    drawStringCenter(homeName.substring(0, 6), 30, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
+    drawStringScaledCenter(formatScore(homeScore), 30, 12, 3, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
+    drawPossessionDot(30, 36, possession === 'home');
+
+    // AWAY (right half, centered at col 90)
+    drawStringCenter(awayName.substring(0, 6), 90, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
+    drawStringScaledCenter(formatScore(awayScore), 90, 12, 3, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
+    drawPossessionDot(90, 36, possession === 'away');
   }
 
-  // Horizontal divider
-  for (let c = 1; c < BOARD_COLS - 1; c++) {
-    drawDot(c, 35, false, null, null, '#150404');
-  }
-
-  // HOME
-  drawStringCenter(homeName.substring(0, 6), 20, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
-  drawStringScaledCenter(formatScore(homeScore), 20, 12, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
-  drawPossessionDot(20, 28, possession === 'home');
-
-  // AWAY
-  drawStringCenter(awayName.substring(0, 6), 100, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
-  drawStringScaledCenter(formatScore(awayScore), 100, 12, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
-  drawPossessionDot(100, 28, possession === 'away');
-
-  // CENTER — stacked rows
-  // Row 1: Q + number (e.g. "Q1")
-  drawStringCenter('Q' + currentQuarter.toString(), 60, 2, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
-  // Row 2: Game clock
-  drawStringCenter(formatClock(gameClockSeconds), 60, 12, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
-  // Row 3: PC + number (e.g. "PC 40")
-  drawStringCenter('PC ' + playClockSeconds.toString().padStart(2, '0'), 60, 22, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
-
-  // BOTTOM STRIP
-  drawTimeoutDots(20, 38, homeTimeouts);
-  drawStringCenter(currentDown, 60, 37, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
-  drawTimeoutDots(100, 38, awayTimeouts);
-
-  // Marquee divider
+  // Marquee divider (always shown)
   for (let c = 1; c < BOARD_COLS - 1; c++) {
     drawDot(c, 45, false, null, null, '#150404');
   }
@@ -637,6 +657,15 @@ function resetPlayClock() {
 
 function setPossession(team) {
   possession = team;
+}
+
+function toggleTimeMgmt() {
+  showTimeMgmt = document.getElementById('ctrl-time-mgmt').checked;
+  // Show/hide time control sections
+  var timeSections = document.querySelectorAll('.time-mgmt-section');
+  for (var i = 0; i < timeSections.length; i++) {
+    timeSections[i].style.display = showTimeMgmt ? '' : 'none';
+  }
 }
 
 function useTimeout(team) {
