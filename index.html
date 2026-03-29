@@ -155,6 +155,26 @@
       <div class="control-section">
         <h3>Scrolling Text</h3>
         <div class="control-row">
+          <label>Preset</label>
+          <select id="ctrl-marquee-template" onchange="applyMarqueeTemplate()">
+            <option value="">-- Select Template --</option>
+            <option value="END OF QUARTER">End of Quarter</option>
+            <option value="HALFTIME">Halftime</option>
+            <option value="TIMEOUT">Timeout</option>
+            <option value="home_timeout">Home Timeout</option>
+            <option value="away_timeout">Away Timeout</option>
+            <option value="home_td">Home Touchdown #XX</option>
+            <option value="away_td">Away Touchdown #XX</option>
+            <option value="home_fg">Home Field Goal</option>
+            <option value="away_fg">Away Field Goal</option>
+            <option value="home_safety">Safety - Home</option>
+            <option value="away_safety">Safety - Away</option>
+            <option value="FIRST DOWN">First Down</option>
+            <option value="TURNOVER">Turnover</option>
+            <option value="FLAG ON THE PLAY">Flag on the Play</option>
+          </select>
+        </div>
+        <div class="control-row">
           <label>Text</label>
           <input type="text" id="ctrl-marquee-text" value="" maxlength="100" placeholder="Enter message...">
         </div>

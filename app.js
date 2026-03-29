@@ -385,6 +385,47 @@ function resetTimeouts() {
   awayTimeouts = 3;
 }
 
+function applyMarqueeTemplate() {
+  var select = document.getElementById('ctrl-marquee-template');
+  var val = select.value;
+  var text = '';
+
+  switch (val) {
+    case 'home_timeout':
+      text = homeName + ' TIMEOUT';
+      break;
+    case 'away_timeout':
+      text = awayName + ' TIMEOUT';
+      break;
+    case 'home_td':
+      text = '#XX ' + homeName + ' TOUCHDOWN';
+      break;
+    case 'away_td':
+      text = '#XX ' + awayName + ' TOUCHDOWN';
+      break;
+    case 'home_fg':
+      text = homeName + ' FIELD GOAL';
+      break;
+    case 'away_fg':
+      text = awayName + ' FIELD GOAL';
+      break;
+    case 'home_safety':
+      text = 'SAFETY - ' + homeName;
+      break;
+    case 'away_safety':
+      text = 'SAFETY - ' + awayName;
+      break;
+    default:
+      text = val;
+  }
+
+  if (text) {
+    document.getElementById('ctrl-marquee-text').value = text;
+  }
+  // Reset dropdown so the same template can be picked again
+  select.selectedIndex = 0;
+}
+
 function publishMarquee() {
   var text = document.getElementById('ctrl-marquee-text').value.toUpperCase();
   var repeats = parseInt(document.getElementById('ctrl-marquee-repeats').value, 10) || 1;
