@@ -14,6 +14,15 @@ let awayName = 'AWAY';
 let homeTimeouts = 3;
 let awayTimeouts = 3;
 
+// Marquee state
+let marqueeText = '';
+let marqueeOffset = 0;      // current scroll position in dot columns
+let marqueeRepeatsLeft = 0;  // how many passes remain
+let marqueeActive = false;
+let marqueeTextWidth = 0;    // total width in dot columns
+let lastMarqueeTime = 0;
+const MARQUEE_SPEED = 60;    // dots per second
+
 // ── Canvas Setup ──
 
 const canvas = document.getElementById('led-canvas');
@@ -34,7 +43,7 @@ const COLOR_AMBER_DIM = '#1a1005';
 
 // Board layout in dot units
 const BOARD_COLS = 120;
-const BOARD_ROWS = 46;
+const BOARD_ROWS = 55;
 
 // Computed pixel values
 let dotRadius, dotSpacing;
@@ -139,6 +148,28 @@ function drawTimeoutDots(centerCol, row, remaining) {
   }
 }
 
+// Draw a string clipped to a column range (for marquee)
+function drawStringClipped(str, startCol, startRow, clipLeft, clipRight, color, brightColor, dimColor) {
+  let col = startCol;
+  for (let i = 0; i < str.length; i++) {
+    const charEnd = col + CHAR_W;
+    // Skip chars entirely outside clip region
+    if (charEnd > clipLeft && col < clipRight) {
+      const glyph = LED_FONT[str[i].toUpperCase()] || LED_FONT[' '];
+      for (let row = 0; row < CHAR_H; row++) {
+        for (let c = 0; c < CHAR_W; c++) {
+          const dotCol = col + c;
+          if (dotCol >= clipLeft && dotCol < clipRight) {
+            const on = (glyph[row] >> (CHAR_W - 1 - c)) & 1;
+            drawDot(dotCol, startRow + row, on, color, brightColor, dimColor);
+          }
+        }
+      }
+    }
+    col += CHAR_W + CHAR_GAP;
+  }
+}
+
 // ── Render ──
 
 function formatScore(n) {
@@ -192,6 +223,45 @@ function render() {
   drawStringCenter(currentDown, 60, 37, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
   // Timeouts right
   drawTimeoutDots(100, 38, awayTimeouts);
+
+  // Horizontal divider above marquee
+  for (let c = 1; c < BOARD_COLS - 1; c++) {
+    drawDot(c, 45, false, null, null, '#150404');
+  }
+
+  // MARQUEE ROW (rows 47-53)
+  const MARQUEE_ROW = 47;
+  const MARQUEE_LEFT = 2;
+  const MARQUEE_RIGHT = BOARD_COLS - 2;
+
+  if (marqueeActive && marqueeText.length > 0) {
+    // Advance scroll based on time
+    const now = performance.now();
+    if (lastMarqueeTime > 0) {
+      const dt = (now - lastMarqueeTime) / 1000;
+      marqueeOffset -= dt * MARQUEE_SPEED;
+
+      // Text has fully scrolled off the left
+      if (marqueeOffset < -marqueeTextWidth) {
+        marqueeRepeatsLeft--;
+        if (marqueeRepeatsLeft <= 0) {
+          marqueeActive = false;
+          updateMarqueeStatus();
+        } else {
+          marqueeOffset = MARQUEE_RIGHT;
+          updateMarqueeStatus();
+        }
+      }
+    }
+    lastMarqueeTime = now;
+
+    drawStringClipped(
+      marqueeText,
+      Math.round(marqueeOffset), MARQUEE_ROW,
+      MARQUEE_LEFT, MARQUEE_RIGHT,
+      COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM
+    );
+  }
 
   requestAnimationFrame(render);
 }
@@ -304,6 +374,40 @@ function resetTimeouts() {
   awayTimeouts = 3;
 }
 
+// ── Marquee ──
+
+function publishMarquee() {
+  const text = document.getElementById('ctrl-marquee-text').value.toUpperCase();
+  const repeats = parseInt(document.getElementById('ctrl-marquee-repeats').value, 10) || 1;
+  if (!text.trim()) return;
+
+  marqueeText = text;
+  marqueeTextWidth = text.length * (CHAR_W + CHAR_GAP) - CHAR_GAP;
+  marqueeOffset = BOARD_COLS; // start off-screen right
+  marqueeRepeatsLeft = repeats;
+  marqueeActive = true;
+  lastMarqueeTime = 0;
+  updateMarqueeStatus();
+}
+
+function stopMarquee() {
+  marqueeActive = false;
+  marqueeRepeatsLeft = 0;
+  lastMarqueeTime = 0;
+  updateMarqueeStatus();
+}
+
+function updateMarqueeStatus() {
+  const el = document.getElementById('marquee-status');
+  if (marqueeActive) {
+    el.textContent = 'Scrolling... (' + marqueeRepeatsLeft + ' left)';
+    el.style.color = '#6f6';
+  } else {
+    el.textContent = 'Idle';
+    el.style.color = '#888';
+  }
+}
+
 function resetGame() {
   homeScore = 0;
   awayScore = 0;
@@ -319,4 +423,5 @@ function resetGame() {
   resetPlayClock();
   setPossession(null);
   resetTimeouts();
+  stopMarquee();
 }

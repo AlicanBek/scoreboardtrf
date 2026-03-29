@@ -154,6 +154,24 @@
         </div>
       </div>
 
+      <!-- Scrolling Text -->
+      <div class="control-section">
+        <h3>Scrolling Text</h3>
+        <div class="control-row">
+          <label>Text</label>
+          <input type="text" id="ctrl-marquee-text" value="" maxlength="100" placeholder="Enter message...">
+        </div>
+        <div class="control-row">
+          <label>Times</label>
+          <input type="number" id="ctrl-marquee-repeats" value="3" min="1" max="99" inputmode="numeric">
+        </div>
+        <div class="button-group">
+          <button onclick="publishMarquee()" class="go">Publish</button>
+          <button onclick="stopMarquee()" class="stop">Stop</button>
+        </div>
+        <div id="marquee-status" style="margin-top:8px;font-size:0.75rem;color:#888">Idle</div>
+      </div>
+
       <!-- Reset -->
       <div class="control-section">
         <h3>Game</h3>
