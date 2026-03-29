@@ -148,6 +148,12 @@ body {
   flex-shrink: 0;
 }
 
+.button-grid-3col {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
 .button-group {
   display: flex;
   flex-wrap: wrap;
