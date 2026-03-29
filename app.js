@@ -507,7 +507,7 @@ function render() {
     drawPossessionDot(100, 28, possession === 'away');
 
     // CENTER
-    drawStringCenter('Q' + currentQuarter.toString(), 60, 2, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
+    drawStringCenter((currentQuarter === 'OT' ? 'OT' : 'Q' + currentQuarter), 60, 2, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
     drawStringCenter(formatClock(gameClockSeconds), 60, 12, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
     drawStringCenter('PC ' + playClockSeconds.toString().padStart(2, '0'), 60, 22, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
 
@@ -542,7 +542,7 @@ function render() {
     drawPossessionDot(100, 30, possession === 'away');
 
     // CENTER — quarter and down spread vertically
-    drawStringCenter('Q' + currentQuarter.toString(), 60, 8, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
+    drawStringCenter((currentQuarter === 'OT' ? 'OT' : 'Q' + currentQuarter), 60, 8, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
     drawStringCenterTight(currentDown, 60, 20, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
 
     // BOTTOM STRIP
