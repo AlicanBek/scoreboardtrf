@@ -227,12 +227,13 @@ function render() {
   drawStringScaledCenter(formatScore(awayScore), 100, 12, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
   drawPossessionDot(100, 28, possession === 'away');
 
-  // CENTER
-  drawStringCenter('QTR', 53, 2, '#cc1111', '#ee3333', '#120303');
-  drawStringCenter(currentQuarter.toString(), 53, 11, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
-  drawStringCenter(formatClock(gameClockSeconds), 60, 21, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
-  drawStringCenter('PC', 67, 2, '#cc1111', '#ee3333', '#120303');
-  drawStringCenter(playClockSeconds.toString().padStart(2, '0'), 67, 11, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
+  // CENTER — stacked rows
+  // Row 1: Q + number (e.g. "Q1")
+  drawStringCenter('Q' + currentQuarter.toString(), 60, 2, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
+  // Row 2: Game clock
+  drawStringCenter(formatClock(gameClockSeconds), 60, 12, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
+  // Row 3: PC + number (e.g. "PC 40")
+  drawStringCenter('PC ' + playClockSeconds.toString().padStart(2, '0'), 60, 22, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
 
   // BOTTOM STRIP
   drawTimeoutDots(20, 38, homeTimeouts);
