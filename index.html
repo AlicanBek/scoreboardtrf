@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="theme-color" content="#050505">
   <title>Football Scoreboard</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=3">
 </head>
 <body>
 
@@ -40,17 +40,6 @@
         </div>
       </div>
 
-      <!-- Time Management Toggle -->
-      <div class="control-section">
-        <div class="switch-row">
-          <h3 style="margin-bottom:0">Time Management</h3>
-          <label class="switch">
-            <input type="checkbox" id="ctrl-time-mgmt" checked onchange="toggleTimeMgmt()">
-            <span class="switch-slider"></span>
-          </label>
-        </div>
-      </div>
-
       <!-- Score — side by side -->
       <div class="control-grid-row">
         <div class="control-section">
@@ -77,23 +66,8 @@
         </div>
       </div>
 
-      <!-- Game Clock -->
-      <div class="control-section time-mgmt-section">
-        <h3>Game Clock</h3>
-        <div class="button-group">
-          <button onclick="startGameClock()" class="go">Start</button>
-          <button onclick="stopGameClock()" class="stop">Stop</button>
-          <button onclick="resetGameClock()">Reset 15:00</button>
-        </div>
-        <div class="control-row" style="margin-top:10px">
-          <label>Set</label>
-          <input type="text" id="ctrl-clock" value="15:00" maxlength="5" placeholder="MM:SS" inputmode="numeric">
-          <button onclick="setGameClock()" style="flex:none">Set</button>
-        </div>
-      </div>
-
       <!-- Quarter + Down/Distance side by side -->
-      <div class="control-grid-row time-mgmt-section">
+      <div class="control-grid-row">
         <div class="control-section">
           <h3>Quarter</h3>
           <div class="button-group">
@@ -123,17 +97,8 @@
         </div>
       </div>
 
-      <!-- Play Clock + Possession side by side -->
-      <div class="control-grid-row time-mgmt-section">
-        <div class="control-section">
-          <h3>Play Clock</h3>
-          <div class="button-group">
-            <button onclick="startPlayClock(40)">40s</button>
-            <button onclick="startPlayClock(25)">25s</button>
-            <button onclick="stopPlayClock()" class="stop">Stop</button>
-            <button onclick="resetPlayClock()">Reset</button>
-          </div>
-        </div>
+      <!-- Possession + Timeouts -->
+      <div class="control-grid-row">
         <div class="control-section">
           <h3>Possession</h3>
           <div class="button-group">
@@ -142,23 +107,46 @@
             <button onclick="setPossession(null)">Clear</button>
           </div>
         </div>
-      </div>
-
-      <!-- Timeouts -->
-      <div class="control-grid-row time-mgmt-section">
         <div class="control-section">
-          <h3>Home Timeouts</h3>
+          <h3>Timeouts</h3>
           <div class="button-group">
-            <button onclick="useTimeout('home')" class="stop">Use Timeout</button>
-            <button onclick="homeTimeouts = 3">Reset 3</button>
+            <button onclick="useTimeout('home')" class="stop">Home TO</button>
+            <button onclick="useTimeout('away')" class="stop">Away TO</button>
+            <button onclick="resetTimeouts()">Reset</button>
           </div>
         </div>
-        <div class="control-section">
-          <h3>Away Timeouts</h3>
-          <div class="button-group">
-            <button onclick="useTimeout('away')" class="stop">Use Timeout</button>
-            <button onclick="awayTimeouts = 3">Reset 3</button>
-          </div>
+      </div>
+
+      <!-- Clocks Toggle -->
+      <div class="control-section">
+        <div class="button-group">
+          <button id="btn-time-mgmt" onclick="toggleTimeMgmt()" class="go">Clocks: ON</button>
+        </div>
+      </div>
+
+      <!-- Game Clock -->
+      <div class="control-section time-mgmt-section">
+        <h3>Game Clock</h3>
+        <div class="button-group">
+          <button onclick="startGameClock()" class="go">Start</button>
+          <button onclick="stopGameClock()" class="stop">Stop</button>
+          <button onclick="resetGameClock()">Reset 15:00</button>
+        </div>
+        <div class="control-row" style="margin-top:10px">
+          <label>Set</label>
+          <input type="text" id="ctrl-clock" value="15:00" maxlength="5" placeholder="MM:SS" inputmode="numeric">
+          <button onclick="setGameClock()" style="flex:none">Set</button>
+        </div>
+      </div>
+
+      <!-- Play Clock -->
+      <div class="control-section time-mgmt-section">
+        <h3>Play Clock</h3>
+        <div class="button-group">
+          <button onclick="startPlayClock(40)">40s</button>
+          <button onclick="startPlayClock(25)">25s</button>
+          <button onclick="stopPlayClock()" class="stop">Stop</button>
+          <button onclick="resetPlayClock()">Reset</button>
         </div>
       </div>
 
@@ -222,7 +210,7 @@
     </div>
   </div>
 
-  <script src="led-font.js?v=2"></script>
-  <script src="app.js?v=2"></script>
+  <script src="led-font.js?v=3"></script>
+  <script src="app.js?v=3"></script>
 </body>
 </html>

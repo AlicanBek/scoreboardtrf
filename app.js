@@ -471,58 +471,38 @@ function render() {
   ctx.fillStyle = COLOR_BG;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+  // Vertical dividers
+  for (let r = 1; r < 34; r++) {
+    drawDot(40, r, false, null, null, '#150404');
+    drawDot(80, r, false, null, null, '#150404');
+  }
+
+  // Horizontal divider
+  for (let c = 1; c < BOARD_COLS - 1; c++) {
+    drawDot(c, 35, false, null, null, '#150404');
+  }
+
+  // HOME
+  drawStringCenter(homeName.substring(0, 6), 20, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
+  drawStringScaledCenter(formatScore(homeScore), 20, 12, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
+  drawPossessionDot(20, 28, possession === 'home');
+
+  // AWAY
+  drawStringCenter(awayName.substring(0, 6), 100, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
+  drawStringScaledCenter(formatScore(awayScore), 100, 12, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
+  drawPossessionDot(100, 28, possession === 'away');
+
+  // CENTER
+  drawStringCenter('Q' + currentQuarter.toString(), 60, 2, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
   if (showTimeMgmt) {
-    // ── FULL LAYOUT (with time management) ──
-
-    // Vertical dividers
-    for (let r = 1; r < 34; r++) {
-      drawDot(40, r, false, null, null, '#150404');
-      drawDot(80, r, false, null, null, '#150404');
-    }
-
-    // Horizontal divider
-    for (let c = 1; c < BOARD_COLS - 1; c++) {
-      drawDot(c, 35, false, null, null, '#150404');
-    }
-
-    // HOME
-    drawStringCenter(homeName.substring(0, 6), 20, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
-    drawStringScaledCenter(formatScore(homeScore), 20, 12, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
-    drawPossessionDot(20, 28, possession === 'home');
-
-    // AWAY
-    drawStringCenter(awayName.substring(0, 6), 100, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
-    drawStringScaledCenter(formatScore(awayScore), 100, 12, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
-    drawPossessionDot(100, 28, possession === 'away');
-
-    // CENTER
-    drawStringCenter('Q' + currentQuarter.toString(), 60, 2, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
     drawStringCenter(formatClock(gameClockSeconds), 60, 12, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
     drawStringCenter('PC ' + playClockSeconds.toString().padStart(2, '0'), 60, 22, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
-
-    // BOTTOM STRIP
-    drawTimeoutDots(20, 38, homeTimeouts);
-    drawStringCenter(currentDown, 60, 37, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
-    drawTimeoutDots(100, 38, awayTimeouts);
-
-  } else {
-    // ── SIMPLE LAYOUT (no time management) ──
-
-    // Vertical divider (single, center)
-    for (let r = 1; r < 44; r++) {
-      drawDot(60, r, false, null, null, '#150404');
-    }
-
-    // HOME (left half, centered at col 30)
-    drawStringCenter(homeName.substring(0, 6), 30, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
-    drawStringScaledCenter(formatScore(homeScore), 30, 12, 3, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
-    drawPossessionDot(30, 36, possession === 'home');
-
-    // AWAY (right half, centered at col 90)
-    drawStringCenter(awayName.substring(0, 6), 90, 2, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
-    drawStringScaledCenter(formatScore(awayScore), 90, 12, 3, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
-    drawPossessionDot(90, 36, possession === 'away');
   }
+
+  // BOTTOM STRIP
+  drawTimeoutDots(20, 38, homeTimeouts);
+  drawStringCenter(currentDown, 60, 37, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
+  drawTimeoutDots(100, 38, awayTimeouts);
 
   // Marquee divider (always shown)
   for (let c = 1; c < BOARD_COLS - 1; c++) {
@@ -660,11 +640,19 @@ function setPossession(team) {
 }
 
 function toggleTimeMgmt() {
-  showTimeMgmt = document.getElementById('ctrl-time-mgmt').checked;
-  // Show/hide time control sections
+  showTimeMgmt = !showTimeMgmt;
+  var btn = document.getElementById('btn-time-mgmt');
   var timeSections = document.querySelectorAll('.time-mgmt-section');
-  for (var i = 0; i < timeSections.length; i++) {
-    timeSections[i].style.display = showTimeMgmt ? '' : 'none';
+  if (showTimeMgmt) {
+    btn.textContent = 'Clocks: ON';
+    btn.className = 'go';
+    for (var i = 0; i < timeSections.length; i++) timeSections[i].style.display = '';
+  } else {
+    btn.textContent = 'Clocks: OFF';
+    btn.className = 'stop';
+    stopGameClock();
+    stopPlayClock();
+    for (var i = 0; i < timeSections.length; i++) timeSections[i].style.display = 'none';
   }
 }
 
