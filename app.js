@@ -199,12 +199,13 @@ function drawStringClipped(str, startCol, startRow, clipLeft, clipRight, color, 
 // ── Render ──
 
 function resizeCanvas() {
-  const containerWidth = canvas.parentElement.clientWidth - 12;
-  dotSpacing = Math.max(2, Math.floor(containerWidth / BOARD_COLS));
-  dotRadius = Math.max(0.8, dotSpacing * 0.36);
+  var containerWidth = canvas.parentElement.clientWidth - 12;
+  var targetWidth = Math.min(containerWidth, 400);
+  dotSpacing = targetWidth / BOARD_COLS;
+  dotRadius = Math.max(0.6, dotSpacing * 0.36);
 
-  canvas.width = BOARD_COLS * dotSpacing;
-  canvas.height = BOARD_ROWS * dotSpacing;
+  canvas.width = Math.round(BOARD_COLS * dotSpacing);
+  canvas.height = Math.round(BOARD_ROWS * dotSpacing);
   canvas.style.width = canvas.width + 'px';
   canvas.style.height = canvas.height + 'px';
 }
