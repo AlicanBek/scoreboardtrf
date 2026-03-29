@@ -24,6 +24,13 @@ let marqueeTextWidth = 0;
 let lastMarqueeTime = 0;
 const MARQUEE_SPEED = 30;
 
+// Animation state
+let animationActive = false;
+let animationFrame = 0;
+let animationStartTime = 0;
+const ANIMATION_FRAME_MS = 400; // ms per frame
+const ANIMATION_TOTAL_MS = 4000; // total duration
+
 // LED dot settings
 const CHAR_W = 5;
 const CHAR_H = 7;
@@ -202,7 +209,159 @@ function resizeCanvas() {
   canvas.style.height = canvas.height + 'px';
 }
 
+// Referee pixel art frames (each is an array of [col, row] offsets from center)
+// Drawn relative to board center. 'W' = white dot, 'Y' = yellow (flag)
+// Frame format: array of {dots: [[col,row],...], color: 'W'|'Y'|'R'}
+
+var REFEREE_FRAMES = (function () {
+  // Build frames from string art (easier to edit)
+  // Legend: W=white, B=black(stripe), Y=yellow, .=empty
+  function parseFrame(lines, originCol, originRow) {
+    var dots = [];
+    for (var r = 0; r < lines.length; r++) {
+      for (var c = 0; c < lines[r].length; c++) {
+        var ch = lines[r][c];
+        if (ch === 'W') dots.push([originCol + c, originRow + r, '#ffffff', '#ffffff']);
+        else if (ch === 'B') dots.push([originCol + c, originRow + r, '#222222', '#444444']);
+        else if (ch === 'Y') dots.push([originCol + c, originRow + r, '#ffdd00', '#ffee44']);
+      }
+    }
+    return dots;
+  }
+
+  var cx = 57; // center x
+  var cy = 5;  // top y
+
+  // Frame 1: arms down
+  var f1 = [
+    '..WWW..',
+    '..WBW..',
+    '.WWWWW.',
+    '..WBW..',
+    '..WBW..',
+    'W.WBW.W',
+    '.WWBWW.',
+    '..WBW..',
+    '..WBW..',
+    '..WBW..',
+    '..WBW..',
+    '..W.W..',
+    '..W.W..',
+    '.W...W.',
+  ];
+
+  // Frame 2: arms out (T-pose, timeout signal)
+  var f2 = [
+    '..WWW..',
+    '..WBW..',
+    '.WWWWW.',
+    '..WBW..',
+    '..WBW..',
+    'WWWBWWW',
+    '.WWBWW.',
+    '..WBW..',
+    '..WBW..',
+    '..WBW..',
+    '..WBW..',
+    '..W.W..',
+    '..W.W..',
+    '.W...W.',
+  ];
+
+  // Frame 3: right arm up (flag throw)
+  var f3 = [
+    '..WWW.Y',
+    '..WBW.Y',
+    '.WWWWWY',
+    '..WBW..',
+    '..WBW..',
+    'W.WBW..',
+    '.WWBWW.',
+    '..WBW..',
+    '..WBW..',
+    '..WBW..',
+    '..WBW..',
+    '..W.W..',
+    '..W.W..',
+    '.W...W.',
+  ];
+
+  // Frame 4: both arms up
+  var f4 = [
+    'W.WWW.W',
+    '.WWBWW.',
+    '.WWWWW.',
+    '..WBW..',
+    '..WBW..',
+    '..WBW..',
+    '..WBW..',
+    '..WBW..',
+    '..WBW..',
+    '..WBW..',
+    '..WBW..',
+    '..W.W..',
+    '..W.W..',
+    '.W...W.',
+  ];
+
+  return [
+    parseFrame(f1, cx, cy),
+    parseFrame(f2, cx, cy),
+    parseFrame(f1, cx, cy),
+    parseFrame(f3, cx, cy),
+    parseFrame(f1, cx, cy),
+    parseFrame(f4, cx, cy),
+    parseFrame(f2, cx, cy),
+    parseFrame(f1, cx, cy),
+    parseFrame(f4, cx, cy),
+    parseFrame(f2, cx, cy),
+  ];
+})();
+
+function renderAnimation() {
+  ctx.fillStyle = COLOR_BG;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  var now = performance.now();
+  var elapsed = now - animationStartTime;
+
+  if (elapsed >= ANIMATION_TOTAL_MS) {
+    animationActive = false;
+    return;
+  }
+
+  // Pick frame
+  var frameIdx = Math.floor(elapsed / ANIMATION_FRAME_MS) % REFEREE_FRAMES.length;
+  var frame = REFEREE_FRAMES[frameIdx];
+
+  // Draw referee
+  for (var i = 0; i < frame.length; i++) {
+    var d = frame[i];
+    drawDot(d[0], d[1], true, d[2], d[3], COLOR_DIM);
+  }
+
+  // Draw text below referee
+  drawStringCenter('REFEREE', 60, 22, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
+  drawStringCenter('REVIEW', 60, 32, COLOR_AMBER_ON, COLOR_AMBER_BRIGHT, COLOR_AMBER_DIM);
+}
+
+function playAnimation() {
+  animationActive = true;
+  animationStartTime = performance.now();
+}
+
+function stopAnimation() {
+  animationActive = false;
+}
+
 function render() {
+  // Animation takeover
+  if (animationActive) {
+    renderAnimation();
+    requestAnimationFrame(render);
+    return;
+  }
+
   ctx.fillStyle = COLOR_BG;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
