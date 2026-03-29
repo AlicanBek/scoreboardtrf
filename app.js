@@ -402,57 +402,34 @@ function renderTRFAnimation(elapsed) {
   var TOTAL_MS = 6000;
   if (elapsed >= TOTAL_MS) { animationActive = false; return; }
 
-  // Phase 1 (0-1500ms): Football enters from right to center
-  // Phase 2 (1500-2500ms): Football at center, text fades in
-  // Phase 3 (2500-6000ms): Full display with text
+  // Football slides right-to-left across the entire board continuously
+  var footballProgress = elapsed / TOTAL_MS;
+  var footballStart = BOARD_COLS + FOOTBALL_PIXELS.width;
+  var footballEnd = -FOOTBALL_PIXELS.width - 10;
+  var footballCol = Math.round(footballStart + footballProgress * (footballEnd - footballStart));
+  var footballRow = 4;
 
-  var phase1End = 1500;
-  var phase2End = 2500;
-
-  if (elapsed < phase1End) {
-    // Football scrolling in from right
-    var progress = elapsed / phase1End;
-    var footballCol = Math.round(BOARD_COLS + 5 - progress * (60 + FOOTBALL_PIXELS.width / 2 + 5));
-    var footballRow = Math.round((BOARD_ROWS - FOOTBALL_PIXELS.height) / 2 - 8);
-
-    for (var i = 0; i < FOOTBALL_PIXELS.pixels.length; i++) {
-      var p = FOOTBALL_PIXELS.pixels[i];
-      var dc = footballCol + p[0];
-      if (dc >= 0 && dc < BOARD_COLS) {
-        drawDot(dc, footballRow + p[1], true, p[2], p[3], COLOR_DIM);
-      }
+  for (var i = 0; i < FOOTBALL_PIXELS.pixels.length; i++) {
+    var p = FOOTBALL_PIXELS.pixels[i];
+    var dc = footballCol + p[0];
+    if (dc >= 0 && dc < BOARD_COLS) {
+      drawDot(dc, footballRow + p[1], true, p[2], p[3], COLOR_DIM);
     }
-  } else {
-    // Football centered
-    var fbCol = Math.round(60 - FOOTBALL_PIXELS.width / 2);
-    var fbRow = 4;
-    for (var i = 0; i < FOOTBALL_PIXELS.pixels.length; i++) {
-      var p = FOOTBALL_PIXELS.pixels[i];
-      drawDot(fbCol + p[0], fbRow + p[1], true, p[2], p[3], COLOR_DIM);
-    }
+  }
 
-    // Text appears
-    if (elapsed >= phase2End || elapsed >= phase1End) {
-      var textAlpha = elapsed < phase2End ? (elapsed - phase1End) / (phase2End - phase1End) : 1;
-      // Use full brightness since we can't really fade LED dots — show progressively
-      var showLine1 = elapsed >= phase1End + 200;
-      var showLine2 = elapsed >= phase1End + 500;
-      var showLine3 = elapsed >= phase1End + 800;
+  // Text appears line by line
+  var showLine1 = elapsed >= 800;
+  var showLine2 = elapsed >= 1400;
+  var showLine3 = elapsed >= 2000;
 
-      var green = '#00cc44';
-      var greenBright = '#22ff66';
-      var greenDim = '#051a0a';
-
-      if (showLine1) {
-        drawStringCenter('T\u00DCRKIYE', 60, 15, green, greenBright, greenDim);
-      }
-      if (showLine2) {
-        drawStringCenter('RAGBI', 60, 25, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
-      }
-      if (showLine3) {
-        drawStringCenter('FEDERASYONU', 60, 35, green, greenBright, greenDim);
-      }
-    }
+  if (showLine1) {
+    drawStringCenter('T\u00DCRKIYE', 60, 16, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
+  }
+  if (showLine2) {
+    drawStringCenter('RAGBI', 60, 26, '#ffffff', '#ffffff', '#151515');
+  }
+  if (showLine3) {
+    drawStringCenter('FEDERASYONU', 60, 36, COLOR_ON, COLOR_ON_BRIGHT, COLOR_DIM);
   }
 }
 
