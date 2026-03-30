@@ -659,6 +659,12 @@ function setGoal() {
   currentDown = ordinal(selectedDown) + ' & GOAL';
 }
 
+function setFirstAndTen() {
+  selectedDown = 1;
+  document.getElementById('ctrl-distance').value = '10';
+  currentDown = '1ST & 10';
+}
+
 function startPlayClock(seconds) {
   stopPlayClock();
   playClockSeconds = seconds;
